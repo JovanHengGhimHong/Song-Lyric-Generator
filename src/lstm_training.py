@@ -4,11 +4,11 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
+from pathlib import Path
 from torch.utils.data import DataLoader, TensorDataset
 
-from src.model import Model
-from src.utils import DeviceLoader, timer
-
+from src.models.LSTM import LSTMModel
+from src.utils.utils import DeviceLoader, timer
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,21 +24,6 @@ CONFIG = {
 	"dropout_rate": 0.3,
 	"patience": 3,
 }
-
-
-class LSTMModel(Model):
-	def __init__(self, vocab_size, input_dim, hidden_dim, output_dim, dropout_rate):
-		super().__init__()
-		self.embedding = nn.Embedding(vocab_size, input_dim)
-		self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
-		self.dropout = nn.Dropout(dropout_rate)
-		self.fc = nn.Linear(hidden_dim, output_dim)
-
-	def forward(self, x):
-		embedded = self.embedding(x)
-		lstm_out, _ = self.lstm(embedded)
-		dropped = self.dropout(lstm_out)
-		return self.fc(dropped)
 
 
 def set_seed(seed):

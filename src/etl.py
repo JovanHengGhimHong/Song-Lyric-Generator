@@ -1,16 +1,29 @@
 # batch reads the data source and processes just for pop-english songs
 # this data is stored as a single parquet file for fast loading
 import re
+from pathlib import Path
+
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from src.utils import timer
+from src.utils.utils import timer
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
+SOURCE_CSV_PATH = DATA_DIR / "song_lyrics.csv"
+TARGET_PARQUET_PATH = DATA_DIR / "pop_songs.parquet"
+
+# filter for pop-english songs, sample 50k songs to fit into memory.
+def filter_songs(chunk: pd.DataFrame) -> pd.DataFrame:
+  pop_songs = chunk[(chunk['tag'].str.lower().str.contains('pop', na=False)) & (chunk['language'] == 'en')][['tag', 'title', 'lyrics']]
+  return pop_songs.sample(n=50000, random_state=42)
 
 # here we want to process 2 things:
 # add tokens to denote sections in the lyrics (e.g. <VERSE>)
 def process_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
   # filter for pop songs
-  pop_songs = chunk[(chunk['tag'].str.lower().str.contains('pop', na=False)) & (chunk['language'] == 'en')][['tag', 'title', 'lyrics']]
+  pop_songs = filter_songs(chunk)
 
   # lyrics preprocessing: add tokens to denote sections in the lyrics (e.g. <VERSE>, <CHORUS>)
   def preprocess_lyrics(lyrics):
@@ -43,10 +56,8 @@ def process_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 
   return pop_songs
 
-def main():
-  source_path = 'data/song_lyrics.csv'
+def main() -> None:
   batch_size = 100000
-  target_path = 'data/'
 
   schema = pa.schema([
       ('tag', pa.string()),
@@ -54,9 +65,13 @@ def main():
       ('lyrics', pa.string())
   ])
 
-  with pq.ParquetWriter(f'{target_path}/pop_songs.parquet', schema) as writer, timer("ETL process"):
+  TARGET_PARQUET_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+  with pq.ParquetWriter(TARGET_PARQUET_PATH, schema) as writer, timer("ETL process"):
     print("Processing data in batches...")
-    reader = pd.read_csv(source_path, chunksize=batch_size)
+    print(f"Reading source CSV: {SOURCE_CSV_PATH}")
+    print(f"Writing parquet output: {TARGET_PARQUET_PATH}")
+    reader = pd.read_csv(SOURCE_CSV_PATH, chunksize=batch_size)
 
     for i, chunk in enumerate(reader):
       pop_songs = process_chunk(chunk)
