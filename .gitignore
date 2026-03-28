@@ -1,2 +1,6 @@
 /data
 .vscode/
+__pycache__/
+.github/
+
+*.pt

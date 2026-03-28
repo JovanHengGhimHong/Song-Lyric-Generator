@@ -52,6 +52,7 @@ def build_tokenizers():
 	tokenizer_val = BertTokenizer.from_pretrained("bert-base-uncased")
 	tokenizer_test = BertTokenizer.from_pretrained("bert-base-uncased")
 
+  #add section labels into the tokenizer
 	section_tokens = [f"<{section}>" for section in SECTIONS]
 	tokenizer_train.add_tokens(section_tokens)
 	tokenizer_val.add_tokens(section_tokens)
@@ -83,6 +84,7 @@ def tokenize_splits(train_df, val_df, test_df, tokenizer_train, tokenizer_val, t
 	return train_X, val_X, test_X
 
 
+# shift labels for target to predict
 def create_shifted_labels(x_tensor: torch.Tensor, pad_token_id: int) -> torch.Tensor:
 	y_tensor = torch.zeros_like(x_tensor)
 	y_tensor[:, :-1] = x_tensor[:, 1:]

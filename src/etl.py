@@ -14,10 +14,14 @@ DATA_DIR = PROJECT_ROOT / "data"
 SOURCE_CSV_PATH = DATA_DIR / "song_lyrics.csv"
 TARGET_PARQUET_PATH = DATA_DIR / "pop_songs.parquet"
 
-# filter for pop-english songs, sample 50k songs to fit into memory.
+
+# filter for pop-english songs, sample random songs to fit into memory
+# sample 2.5%
+FRAC_SIZE = 0.025
 def filter_songs(chunk: pd.DataFrame) -> pd.DataFrame:
   pop_songs = chunk[(chunk['tag'].str.lower().str.contains('pop', na=False)) & (chunk['language'] == 'en')][['tag', 'title', 'lyrics']]
-  return pop_songs.sample(n=50000, random_state=42)
+  return pop_songs.sample(frac=FRAC_SIZE, random_state=42)
+
 
 # here we want to process 2 things:
 # add tokens to denote sections in the lyrics (e.g. <VERSE>)
