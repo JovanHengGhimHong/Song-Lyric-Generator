@@ -17,7 +17,7 @@ def timer(label):
 # move tensor datasets to device through custom loader loop
 def move_batch_to_device(batch, device):
   x_batch, y_batch = batch
-  return x_batch.to(device), y_batch.to(device)
+  return x_batch.to(device, non_blocking=True), y_batch.to(device, non_blocking=True)
 
 class DeviceLoader:
   def __init__(self, data_loader, device):
