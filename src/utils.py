@@ -13,6 +13,23 @@ def timer(label):
     
     print(f"{label}: {end - start:.4f}s")
 
+
+# move tensor datasets to device through custom loader loop
+def move_batch_to_device(batch, device):
+  x_batch, y_batch = batch
+  return x_batch.to(device), y_batch.to(device)
+
+class DeviceLoader:
+  def __init__(self, data_loader, device):
+    self.data_loader = data_loader
+    self.device = device
+
+  def __iter__(self):
+    for batch in self.data_loader:
+      yield move_batch_to_device(batch, self.device)
+
+  def __len__(self):
+    return len(self.data_loader)
     
 if __name__ == '__main__':
   pass

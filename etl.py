@@ -43,9 +43,7 @@ def process_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
 
   return pop_songs
 
-
-if __name__ == '__main__':
-
+def main():
   source_path = 'data/song_lyrics.csv'
   batch_size = 100000
   target_path = 'data/'
@@ -68,3 +66,6 @@ if __name__ == '__main__':
       print("Finished processing all batches.")
     writer.close()
 
+
+if __name__ == '__main__':
+  main()
